@@ -98,18 +98,47 @@ func calcChecksum(encrypted string) string {
 	return string(checksum)
 }
 
+func decrypt(encryptedname string) string {
+	sectorId := sectorID(encryptedname)
+	re := regexp.MustCompile(`([a-z]+)-`)
+	matches := re.FindAllStringSubmatch(encryptedname, -1)
+	letters := []rune{}
+	// combine matches into one string
+	for _, m := range matches {
+		for _, letter := range m[1] {
+			letters = append(letters, letter)
+		}
+	}
+	decrypted := []rune{}
+	for _, l := range letters {
+		decrypted = append(decrypted, shift(l, sectorId))
+	}
+	return string(decrypted)
+}
+
+func shift(letter rune, sectorId int) rune {
+	codepoint := letter + rune(sectorId%26)
+	// a-z == 97-122
+	if codepoint > 122 {
+		codepoint -= 26
+	}
+	return rune(codepoint)
+}
+
 func main() {
 	scanner := readInputFile("input")
 	sectorIDSum := 0
 	for scanner.Scan() {
 		encryptedName := scanner.Text()
-		fmt.Println(encryptedName)
 		//fmt.Printf("Calculated checksum: %s\n", calcChecksum(encryptedName))
 		//fmt.Printf("Provided checksum: %s\n", checksum(encryptedName))
 		//fmt.Printf("Secter ID: %d\n", sectorID(encryptedName))
 		if calcChecksum(encryptedName) == checksum(encryptedName) {
 			sectorIDSum += sectorID(encryptedName)
+			fmt.Println(encryptedName)
+			fmt.Printf("Decrypted name: %s\n", decrypt(encryptedName))
 		}
+
 	}
 	fmt.Println(sectorIDSum)
 }
