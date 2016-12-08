@@ -1,23 +1,49 @@
 package main
 
 import (
-	"bufio"
+	"crypto/md5"
 	"fmt"
-	"log"
-	"os"
+	"strconv"
 )
 
-func readInputFile(filename string) *bufio.Scanner {
-	file, err := os.Open("input")
-	if err != nil {
-		log.Fatal("Failed to open input file")
+var input = "uqwqemis"
+var testInput = "abc"
+var index = 0
+
+//var charCount = 0
+
+func getNextString(input string) string {
+	index++
+	return input + strconv.Itoa(index)
+}
+
+func hasUnknown(password [8]string) bool {
+	for _, char := range password {
+		if char == "" {
+			return true
+		}
 	}
-	return bufio.NewScanner(file)
+	return false
 }
 
 func main() {
-	scanner := readInputFile("input")
-	for scanner.Scan() {
-		fmt.Println(scanner.Text())
+	password := [8]string{}
+	//for charCount < 8 {
+	for hasUnknown(password) {
+		toBeHashed := getNextString(input)
+		hash := md5.Sum([]byte(toBeHashed))
+		hashStr := fmt.Sprintf("%x", hash)
+		if hashStr[:5] == "00000" {
+			//charCount++
+			fmt.Printf("%s - %s - %s - %s\n", toBeHashed, hashStr, hashStr[5:6], hashStr[6:7])
+			pos, err := strconv.Atoi(hashStr[5:6])
+			if err != nil {
+				continue
+			}
+			if (pos >= 0 && pos < 8) && (password[pos] == "") {
+				password[pos] = hashStr[6:7]
+				fmt.Printf("  Password: %q\n", password)
+			}
+		}
 	}
 }
